@@ -3,7 +3,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import MovieDetails from './pages/MovieDetails';
-import WatchList from './pages/WatchList';
+import Watchlist from './pages/WatchList';
 
 export default function App() {
   return (
