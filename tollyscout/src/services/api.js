@@ -22,5 +22,11 @@ export const searchTeluguMovies = async (text) => {
 
 export const getMovieDetails = (id) => get(`/movie/${id}`,{ append_to_response: 'videos,credits' });
 
+const NO_POSTER =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750"><rect width="100%" height="100%" fill="#888"/><text x="50%" y="50%" fill="#fff" font-size="40" text-anchor="middle">No poster</text></svg>'
+  );
+
 export const posterUrl = (path) =>
-  path ? `https://image.tmdb.org/t/p/w500${path}` : '/no-poster.png';
+  path ? `https://image.tmdb.org/t/p/w500${path}` : NO_POSTER;
