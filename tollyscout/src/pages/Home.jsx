@@ -64,7 +64,7 @@ export default function Home() {
   return (
     <>
       <section className="hero">
-        <h1 className="hero__title">ఏ బొమ్మ చూద్దాం?</h1>
+        <h1 className="hero__title">Find Your next mass entertainer</h1>
         <p className="hero__sub">
           Which Telugu film tonight? Search by title, then save what you want to watch.
         </p>
