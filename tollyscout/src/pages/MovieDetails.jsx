@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useWatchlist } from '../context/WatchlistContext';
 import { getMovieDetails, posterUrl } from '../services/api';
 
 export default function MovieDetails() {
@@ -7,6 +8,8 @@ export default function MovieDetails() {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const { addMovie, removeMovie, isInWatchlist } = useWatchlist();
 
   useEffect(() => {
     let ignore = false;
@@ -41,6 +44,7 @@ export default function MovieDetails() {
     (v) => v.site === 'YouTube' && v.type === 'Trailer'
   );
   const cast = movie.credits?.cast.slice(0, 6) ?? [];
+  const saved = isInWatchlist(movie.id);
 
   return (
     <div>
@@ -64,6 +68,19 @@ export default function MovieDetails() {
             {runtime && ` · ${runtime}`}
           </p>
           <p>{movie.genres.map((g) => g.name).join(', ')}</p>
+<button
+  onClick={() => (saved ? removeMovie(movie.id) : addMovie(movie))}
+  style={{
+    padding: '10px 18px',
+    fontSize: 16,
+    borderRadius: 8,
+    border: '1px solid #888',
+    cursor: 'pointer',
+    marginBottom: 8,
+    }}
+>
+  {saved ? '✓ In watchlist (click to remove)' : '+ Add to watchlist'}
+</button>
 
           <h3>Overview</h3>
           <p>{movie.overview || 'No overview available.'}</p>
