@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { getMovieDetails, posterUrl, backdropUrl } from '../services/api';
 import { useWatchlist } from '../context/WatchlistContext';
-import { getMovieDetails, posterUrl } from '../services/api';
 
 export default function MovieDetails() {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
   const { addMovie, removeMovie, isInWatchlist } = useWatchlist();
 
   useEffect(() => {
@@ -32,8 +31,8 @@ export default function MovieDetails() {
     };
   }, [id]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p className="status">Loading movie…</p>;
+  if (error) return <p className="status status--error">Couldn’t load this movie. Go back and try again.</p>;
   if (!movie) return null;
 
   const year = movie.release_date?.slice(0, 4);
@@ -43,68 +42,79 @@ export default function MovieDetails() {
   const trailer = movie.videos?.results.find(
     (v) => v.site === 'YouTube' && v.type === 'Trailer'
   );
-  const cast = movie.credits?.cast.slice(0, 6) ?? [];
+  const cast = movie.credits?.cast.slice(0, 8) ?? [];
   const saved = isInWatchlist(movie.id);
+  const backdrop = backdropUrl(movie.backdrop_path);
 
   return (
-    <div>
-      <Link to="/">← Back to movies</Link>
+    <article>
+      <Link to="/" className="back">Back to movies</Link>
 
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', marginTop: 16 }}>
-        <img
-          src={posterUrl(movie.poster_path)}
-          alt={movie.title}
-          style={{ width: 280, maxWidth: '100%', borderRadius: 12 }}
-        />
+      <section
+        className="detail"
+        style={backdrop ? { '--backdrop': `url(${backdrop})` } : undefined}
+      >
+        <div className="detail__scrim">
+          <img className="detail__poster" src={posterUrl(movie.poster_path)} alt={`${movie.title} poster`} />
 
-        <div style={{ flex: 1, minWidth: 260 }}>
-          <h1 style={{ marginTop: 0 }}>
-            {movie.title} {year && `(${year})`}
-          </h1>
-          {movie.tagline && <p><em>{movie.tagline}</em></p>}
+          <div className="detail__info">
+            <h1 className="detail__title">{movie.title}</h1>
+            {movie.tagline && <p className="detail__tagline">{movie.tagline}</p>}
 
-          <p>
-            ⭐ {movie.vote_average.toFixed(1)}
-            {runtime && ` · ${runtime}`}
-          </p>
-          <p>{movie.genres.map((g) => g.name).join(', ')}</p>
-<button
-  onClick={() => (saved ? removeMovie(movie.id) : addMovie(movie))}
-  style={{
-    padding: '10px 18px',
-    fontSize: 16,
-    borderRadius: 8,
-    border: '1px solid #888',
-    cursor: 'pointer',
-    marginBottom: 8,
-    }}
->
-  {saved ? '✓ In watchlist (click to remove)' : '+ Add to watchlist'}
-</button>
+            <ul className="facts">
+              {year && <li>{year}</li>}
+              {runtime && <li>{runtime}</li>}
+              {movie.vote_average > 0 && (
+                <li className="facts__rating">★ {movie.vote_average.toFixed(1)}</li>
+              )}
+            </ul>
 
-          <h3>Overview</h3>
-          <p>{movie.overview || 'No overview available.'}</p>
+            <ul className="chips">
+              {movie.genres.map((g) => (
+                <li key={g.id}>{g.name}</li>
+              ))}
+            </ul>
 
-          {cast.length > 0 && (
-            <>
-              <h3>Cast</h3>
-              <p>{cast.map((c) => c.name).join(', ')}</p>
-            </>
-          )}
+            <p className="detail__overview">
+              {movie.overview || 'No overview is available for this movie yet.'}
+            </p>
+
+            <button
+              className={saved ? 'btn btn--ghost' : 'btn'}
+              aria-pressed={saved}
+              onClick={() => (saved ? removeMovie(movie.id) : addMovie(movie))}
+            >
+              {saved ? 'Remove from watchlist' : 'Add to watchlist'}
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {cast.length > 0 && (
+        <>
+          <h2 className="subhead">Cast</h2>
+          <ul className="cast">
+            {cast.map((c) => (
+              <li key={c.id}>
+                {c.name}
+                {c.character && <span>{c.character}</span>}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {trailer && (
-        <div style={{ marginTop: 24 }}>
-          <h3>Trailer</h3>
+        <>
+          <h2 className="subhead">Trailer</h2>
           <iframe
+            className="trailer"
             src={`https://www.youtube.com/embed/${trailer.key}`}
-            title="Trailer"
+            title={`${movie.title} trailer`}
             allowFullScreen
-            style={{ width: '100%', maxWidth: 640, aspectRatio: '16 / 9', border: 0 }}
           />
-        </div>
+        </>
       )}
-    </div>
+    </article>
   );
 }

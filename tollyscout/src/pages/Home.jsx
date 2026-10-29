@@ -62,34 +62,37 @@ export default function Home() {
   };
 
   return (
-    <div>
-      <h1>TollyScout</h1>
-      <SearchBar value={query} onChange={setQuery} />
+    <>
+      <section className="hero">
+        <h1 className="hero__title">ఏ బొమ్మ చూద్దాం?</h1>
+        <p className="hero__sub">
+          Which Telugu film tonight? Search by title, then save what you want to watch.
+        </p>
+        <SearchBar value={query} onChange={setQuery} />
+      </section>
 
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
+      <h2 className="section-title">
+        {isSearch ? `Results for “${debouncedQuery}”` : 'Popular Telugu movies'}
+      </h2>
+
+      {loading && <p className="status">Loading movies…</p>}
+      {error && (
+        <p className="status status--error">
+          Couldn’t load movies. Check your connection and API key, then refresh.
+        </p>
+      )}
       {!loading && !error && movies.length === 0 && (
-        <p>No Telugu movies found for {query}</p>
+        <p className="status">No Telugu movies match “{debouncedQuery}”. Try a different title.</p>
       )}
       {!loading && movies.length > 0 && <MovieGrid movies={movies} />}
 
       {!loading && !isSearch && page < totalPages && (
-        <button
-          onClick={loadMore}
-          disabled={loadingMore}
-          style={{
-            display: 'block',
-            margin: '24px auto',
-            padding: '10px 24px',
-            fontSize: 16,
-            borderRadius: 8,
-            border: '1px solid #888',
-            cursor: 'pointer',
-          }}
-        >
-          {loadingMore ? 'Loading...' : 'Load more'}
-        </button>
+        <div className="more">
+          <button className="btn btn--ghost" onClick={loadMore} disabled={loadingMore}>
+            {loadingMore ? 'Loading…' : 'Load more'}
+          </button>
+        </div>
       )}
-    </div>
+    </>
   );
 }

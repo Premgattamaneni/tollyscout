@@ -30,3 +30,6 @@ const NO_POSTER =
 
 export const posterUrl = (path) =>
   path ? `https://image.tmdb.org/t/p/w500${path}` : NO_POSTER;
+
+export const backdropUrl = (path) =>
+  path ? `https://image.tmdb.org/t/p/w1280${path}` : null;

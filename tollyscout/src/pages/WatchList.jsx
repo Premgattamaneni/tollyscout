@@ -6,15 +6,23 @@ export default function Watchlist() {
   const { watchlist } = useWatchlist();
 
   return (
-    <div>
-      <h1>My Watchlist</h1>
+    <section>
+      <h1 className="page-title">My watchlist</h1>
+
       {watchlist.length === 0 ? (
-        <p>
-          Nothing saved yet. <Link to="/">Browse movies</Link>
-        </p>
+        <div className="empty">
+          <p>Your watchlist is empty.</p>
+          <p>Open any movie and choose Add to watchlist to save it here.</p>
+          <Link to="/" className="btn">Discover movies</Link>
+        </div>
       ) : (
-        <MovieGrid movies={watchlist} />
+        <>
+          <p className="muted">
+            {watchlist.length} {watchlist.length === 1 ? 'movie' : 'movies'} saved
+          </p>
+          <MovieGrid movies={watchlist} />
+        </>
       )}
-    </div>
+    </section>
   );
 }
