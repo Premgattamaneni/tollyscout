@@ -20,7 +20,7 @@ export const searchTeluguMovies = async (text) => {
   return data.results.filter((m) => m.original_language === 'te');
 };
 
-export const getMovieDetails = (id) => get(`/movie/${id}`);
+export const getMovieDetails = (id) => get(`/movie/${id}`,{ append_to_response: 'videos,credits' });
 
 export const posterUrl = (path) =>
   path ? `https://image.tmdb.org/t/p/w500${path}` : '/no-poster.png';
