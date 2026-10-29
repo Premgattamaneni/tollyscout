@@ -1,0 +1,26 @@
+const BASE = 'https://api.themoviedb.org/3';
+const KEY = import.meta.env.VITE_TMDB_KEY;
+
+async function get(path, params = {}) {
+  const query = new URLSearchParams({ api_key: KEY, ...params });
+  const res = await fetch(`${BASE}${path}?${query}`);
+  if (!res.ok) throw new Error('Failed to fetch data');
+  return res.json();
+}
+
+export const getTeluguMovies = (page = 1) =>
+  get('/discover/movie', {
+    with_original_language: 'te',
+    sort_by: 'popularity.desc',
+    page,
+  });
+
+export const searchTeluguMovies = async (text) => {
+  const data = await get('/search/movie', { query: text });
+  return data.results.filter((m) => m.original_language === 'te');
+};
+
+export const getMovieDetails = (id) => get(`/movie/${id}`);
+
+export const posterUrl = (path) =>
+  path ? `https://image.tmdb.org/t/p/w500${path}` : '/no-poster.png';
