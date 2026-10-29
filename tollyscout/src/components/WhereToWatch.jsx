@@ -2,77 +2,38 @@
 import { useEffect, useState } from 'react';
 import './WhereToWatch.css';
 
-const API_KEY = import.meta.env.VITE_TMDB_KEY;
-
-// These are platform search pages, not guaranteed direct movie pages.
-function getPlatformSearchUrl(providerName, movieTitle) {
-  const query = encodeURIComponent(movieTitle);
-
-  const platforms = {
-    Netflix: `https://www.netflix.com/search?q=${query}`,
-    'Amazon Prime Video': `https://www.primevideo.com/search?phrase=${query}`,
-    'Prime Video': `https://www.primevideo.com/search?phrase=${query}`,
-    'JioHotstar': `https://www.hotstar.com/in/search?q=${query}`,
-    Hotstar: `https://www.hotstar.com/in/search?q=${query}`,
-    ZEE5: `https://www.zee5.com/search?q=${query}`,
-    Aha: `https://www.aha.video/search?search=${query}`,
-    SonyLIV: `https://www.sonyliv.com/search/${query}`,
-    YouTube: `https://www.youtube.com/results?search_query=${query}`,
-    'Apple TV': `https://tv.apple.com/in/search?term=${query}`,
-  };
-
-  return platforms[providerName] || null;
-}
-
-export default function WhereToWatch({ movieId, movieTitle }) {
-  const [providers, setProviders] = useState([]);
+export default function WhereToWatch({ movieId }) {
+  const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let ignore = false;
 
-    async function fetchProviders() {
+    async function loadOptions() {
       setLoading(true);
-      setProviders([]);
+      setError('');
+      setOptions([]);
 
       try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${API_KEY}`
-        );
+        const response = await fetch(`/api/streaming?id=${movieId}`);
+        const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(`TMDB request failed: ${response.status}`);
+          throw new Error(data.error || 'Unable to load streaming options');
         }
 
-        const data = await response.json();
-        const india = data.results?.IN;
-
-        const all = [
-          ...(india?.flatrate || []),
-          ...(india?.free || []),
-          ...(india?.ads || []),
-          ...(india?.rent || []),
-          ...(india?.buy || []),
-        ];
-
-        const unique = [
-          ...new Map(
-            all.map((provider) => [
-              provider.provider_id,
-              provider,
-            ])
-          ).values(),
-        ];
-
-        if (!ignore) setProviders(unique);
-      } catch (error) {
-        console.error('Streaming providers error:', error);
+        if (!ignore) {
+          setOptions(data.streamingOptions || []);
+        }
+      } catch (err) {
+        if (!ignore) setError(err.message);
       } finally {
         if (!ignore) setLoading(false);
       }
     }
 
-    if (movieId) fetchProviders();
+    if (movieId) loadOptions();
 
     return () => {
       ignore = true;
@@ -82,49 +43,52 @@ export default function WhereToWatch({ movieId, movieTitle }) {
   return (
     <section className="where-to-watch">
       <h2 className="subhead">Where to Watch</h2>
-      <p className="watch-region">Streaming platforms in India</p>
+      <p className="watch-region">Streaming options in India</p>
 
-      {loading ? (
-        <p className="muted">Checking platforms...</p>
-      ) : providers.length === 0 ? (
-        <p className="muted">
-          No streaming availability information found for India.
-        </p>
-      ) : (
-        <div className="provider-list">
-          {providers.map((provider) => {
-            const url = getPlatformSearchUrl(
-              provider.provider_name,
-              movieTitle
-            );
+      {loading && <p className="muted">Loading platforms...</p>}
 
-            return (
-              <a
-                key={provider.provider_id}
-                className="provider-card"
-                href={url || `https://www.google.com/search?q=${encodeURIComponent(
-                  `${provider.provider_name} ${movieTitle} watch online India`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={`Search for ${movieTitle} on ${provider.provider_name}`}
-              >
-                <img
-                  src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
-                  alt=""
-                  loading="lazy"
-                />
-                <span>{provider.provider_name}</span>
-                <span aria-hidden="true">↗</span>
-              </a>
-            );
-          })}
-        </div>
+      {!loading && error && (
+        <p className="status status--error">{error}</p>
       )}
 
+      {!loading && !error && options.length === 0 && (
+        <p className="muted">
+          No streaming links found for this movie in India.
+        </p>
+      )}
+
+      <div className="provider-list">
+        {options.map((option, index) => (
+          <a
+            key={`${option.provider}-${option.type}-${index}`}
+            className="provider-card"
+            href={option.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {option.logo && (
+              <img src={option.logo} alt="" loading="lazy" />
+            )}
+
+            <span>{option.provider}</span>
+
+            <small>
+              {option.type === 'subscription'
+                ? 'Stream'
+                : option.type === 'rent'
+                  ? 'Rent'
+                  : option.type === 'buy'
+                    ? 'Buy'
+                    : option.type}
+            </small>
+
+            <span aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+
       <p className="watch-credit">
-        Availability data provided by JustWatch via TMDB.
-        Platform search links may not lead directly to the movie.
+        Streaming availability provided by Movie of the Night.
       </p>
     </section>
   );

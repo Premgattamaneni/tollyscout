@@ -1,35 +1,55 @@
-const BASE = 'https://api.themoviedb.org/3';
-const KEY = import.meta.env.VITE_TMDB_KEY;
 
-async function get(path, params = {}) {
-  const query = new URLSearchParams({ api_key: KEY, ...params });
-  const res = await fetch(`${BASE}${path}?${query}`);
-  if (!res.ok) throw new Error('Failed to fetch data');
-  return res.json();
-}
+const BASE_URL = 'https://api.themoviedb.org/3';
+const API_KEY = import.meta.env.VITE_TMDB_KEY;
 
-export const getTeluguMovies = (page = 1) =>
-  get('/discover/movie', {
-    with_original_language: 'te',
-    sort_by: 'popularity.desc',
-    page,
-  });
+async function tmdbFetch(path) {
+  if (!API_KEY) {
+    throw new Error('TMDB API key is missing');
+  }
 
-export const searchTeluguMovies = async (text) => {
-  const data = await get('/search/movie', { query: text });
-  return data.results.filter((m) => m.original_language === 'te');
-};
+  const separator = path.includes('?') ? '&' : '?';
 
-export const getMovieDetails = (id) => get(`/movie/${id}`,{ append_to_response: 'videos,credits' });
-
-const NO_POSTER =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750"><rect width="100%" height="100%" fill="#888"/><text x="50%" y="50%" fill="#fff" font-size="40" text-anchor="middle">No poster</text></svg>'
+  const response = await fetch(
+    `${BASE_URL}${path}${separator}api_key=${API_KEY}`
   );
 
-export const posterUrl = (path) =>
-  path ? `https://image.tmdb.org/t/p/w500${path}` : NO_POSTER;
+  if (!response.ok) {
+    throw new Error(`TMDB request failed: ${response.status}`);
+  }
 
-export const backdropUrl = (path) =>
-  path ? `https://image.tmdb.org/t/p/w1280${path}` : null;
+  return response.json();
+}
+
+export async function getTeluguMovies(page = 1) {
+  return tmdbFetch(
+    `/discover/movie?with_original_language=te&sort_by=popularity.desc&page=${page}`
+  );
+}
+
+export async function searchTeluguMovies(query) {
+  const params = new URLSearchParams({
+    query,
+    with_original_language: 'te',
+  });
+
+  const data = await tmdbFetch(`/search/movie?${params}`);
+  return data.results || [];
+}
+
+export async function getMovieDetails(id) {
+  return tmdbFetch(
+    `/movie/${id}?append_to_response=videos,credits`
+  );
+}
+
+export function posterUrl(path) {
+  return path
+    ? `https://image.tmdb.org/t/p/w500${path}`
+    : 'https://placehold.co/500x750?text=No+Poster';
+}
+
+export function backdropUrl(path) {
+  return path
+    ? `https://image.tmdb.org/t/p/original${path}`
+    : '';
+}

@@ -77,10 +77,10 @@ export default function Home() {
 
       {loading && <p className="status">Loading movies…</p>}
       {error && (
-        <p className="status status--error">
-          Couldn’t load movies. Check your connection and API key, then refresh.
-        </p>
-      )}
+  <p className="status status--error">
+    Couldn’t load movies: {error}
+  </p>
+)}
       {!loading && !error && movies.length === 0 && (
         <p className="status">No Telugu movies match “{debouncedQuery}”. Try a different title.</p>
       )}
