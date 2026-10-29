@@ -43,7 +43,7 @@ h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.25; }
 
 /* Hero and ticket search */
 .hero { padding: 56px 0 24px; }
-.hero__title { font-weight: 800; font-size: clamp(2.6rem, 8vw, 5.5rem); letter-spacing: -0.02em; }
+.hero__title { line-height: 1.1; }
 .hero__sub { max-width: 46ch; margin: 16px 0 28px; color: var(--muted); font-size: 1.1rem; }
 
 .ticket { display: flex; max-width: 580px; background: var(--marigold); color: var(--ink); border-radius: 14px; }
